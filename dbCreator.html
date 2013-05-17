@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="newsite/wp-includes/js/jquery/jquery.js"></script>
+    <link href='http://fonts.googleapis.com/css?family=Quicksand:300,400' rel='stylesheet' type='text/css'>
+    <!-- <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script> -->
+    <style>        
+        #dbcTable {
+          width: 800px;
+          height: 800px;
+          border: 1px dashed rgb(190,190,190);
+          text-align: center;
+          border-collapse:collapse;
+/*           border-spacing: 0px; */
+        }
+
+        #dbcTable td {
+          border: 1px dashed rgb(190,190,190);
+        }
+        
+        #dbcTable td.fullblock {
+          background: #3498db;
+          content: "F";
+/*            border: 1px solid #20AECE;
+            border-radius: 4px;*/
+        }
+        
+        #dbcTable td.halfblock {
+          background: #1D5E8C;
+          content: "H";
+          /*border: none;*/
+        }
+        
+        #cost-calculator {
+            font: 43px Quicksand;
+            font-weight: 300;
+        }
+    </style>
+    <script>
+    jQuery(document).ready(function() {
+        // track when mouse click is being held down
+        var isDown = false;
+        jQuery(document).mousedown(function() {
+            isDown = true;      // When mouse goes down, set isDown to true
+          })
+          .mouseup(function() {
+            isDown = false;    // When mouse goes up, set isDown to false
+          });
+        
+        // color blocks on clicks and mousedown/drag
+        jQuery("#dbcTable td").live('mouseenter mousedown', function(event) {
+            // return and do not color if mouse enters a cell but the mouse is not held down
+            if (event.type == 'mouseenter' && !isDown) return;
+        
+            // remove element focus b\c highlighting looks messy
+            if (window.getSelection) {
+              if (window.getSelection().empty) {  // Chrome
+                window.getSelection().empty();
+              } else if (window.getSelection().removeAllRanges) {  // Firefox
+                window.getSelection().removeAllRanges();
+              }
+            } else if (document.selection) {  // IE?
+              document.selection.empty();
+            }
+            
+            var $block = jQuery(event.target);              
+            var klass = $block.attr('class');
+            
+            // logic to cycle through each cell state: fullblock, halfblock, or empty
+            if ( klass == 'fullblock' ) 
+                $block.removeClass('fullblock').addClass('halfblock');
+            else if ( klass == 'halfblock' )
+                $block.removeClass('halfblock');
+            else
+                $block.addClass('fullblock');
+            
+            // if(event.type == 'mousedown')    
+            //                 calcConnections();
+        });
+        
+        // recaculate the totals of each connection type on every mouse up
+        // and display to screen
+        jQuery("#dbcTable td").live('mouseup', function() { 
+            var connections = calcConnections();
+            updateTotals(connections);
+        });
+        
+        // generate inital grid based on default gridsize
+        generateGrid(jQuery("#gridSize").val());
+    }); 
+    
+    // helper grid resize function
+    function resizeGrid(){
+        generateGrid(jQuery("#gridSize").val());
+    }   
+    
+    // generate a numBlocks x numBlocks size grid
+    function generateGrid(numBlocks) {
+        numBlocks = parseInt(numBlocks);
+        var html = ""
+        for (var i=0; i < numBlocks; i++) {
+            var row = "";
+            for (var j=0; j < numBlocks; j++) { row += "<td></td>" }
+            html += "<tr>" + row + "</tr>";
+        }
+        jQuery("#dbcTable").html(html);
+    }  
+    
+    // calculate the number of each type of connection: full-full, full-half, half-half
+    function calcConnections() {
+        // initialize connection totals to zero
+        var full_full_connections = 0;
+        var half_half_connections = 0;
+        var full_half_connections = 0;                
+        
+        // traverse cells to determine number of each connection type
+       
+        // traverse each row
+        var tr = jQuery("#dbcTable tbody")[0].childNodes;
+        for ( var i=0; i < tr.length; i++) {
+            // get array of cells in this row
+            var td = tr[i].childNodes;
+            
+            // traverse each cell in this row
+            for ( var j=0; j < td.length; j++ ) {
+                // skip if cell is empty and not a block
+                if ( td[j].className == "" ) continue;
+                
+                // check horizontal right neighbor
+                if ( td[j+1] && td[j+1].className != "" ) { // check right neighbor cell exists and has a block
+                    // check if both are the same block type
+                    if ( td[j].className == td[j+1].className ) { 
+                        // if same block type, determine if full-full or half-half connection
+                        if ( td[j].className == "fullblock" ) full_full_connections += 1;
+                        else half_half_connections += 1;
+                    } else { // otherwise must be full-half connection
+                        full_half_connections += 1;
+                    }
+                }
+                
+                // check vertical below neighbor
+                if (tr[i+1] && tr[i+1].childNodes[j].className != "") { // check below neighbor cell exists and has block
+                    // check if both are the same block type
+                    if ( td[j].className == tr[i+1].childNodes[j].className ) {
+                        // if same block type, determine if full-full or half-half connection
+                        if ( td[j].className == "fullblock" ) full_full_connections += 1;
+                        else half_half_connections += 1;
+                    } else { // otherwise must be full-half connection
+                        full_half_connections += 1;
+                    }
+                }
+            } 
+        }
+        
+        // return connection totals
+        return { 
+            "full-full" : full_full_connections,
+            "full-half" : full_half_connections,
+            "half-half" : half_half_connections
+        }        
+    } 
+    
+    // update totals
+    function updateTotals(connections) {
+        // update totals
+        jQuery("#fullblock-num").html( jQuery(".fullblock").size() );
+        jQuery("#halfblock-num").html( jQuery(".halfblock").size() );
+        jQuery("#full-full-num").html( connections['full-full'] );
+        jQuery("#full-half-num").html( connections['full-half'] );
+        jQuery("#half-half-num").html( connections['half-half'] );
+        
+    }
+     
+    </script>
+</head>
+<body>
+    <div style="float:left">
+        <input id="gridSize" value="10" style="width:50px"></input>
+        <button onclick="resizeGrid()">Update # of Blocks</button>
+        <table id="dbcTable">      
+        </table>    
+    </div>
+    <div id="cost-calculator" style="float:left; margin-left: 25px; margin-top:200px">
+        <div>#Full Blocks : <span id="fullblock-num">0</span></div>
+        <div>#Half Blocks : <span id="halfblock-num">0</span></div>
+        <div>#Full-Full Connections : <span id="full-full-num">0</span></div>
+        <div>#Full-Half Connections : <span id="full-half-num">0</span></div>
+        <div>#Half-Half Connections : <span id="half-half-num">0</span></div>
+    </div>
+</body>
+</html>
