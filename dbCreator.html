@@ -19,14 +19,16 @@
         }
         
         #dbcTable td.fullblock {
-          background: #3498db;
+/*          background: #3498db;*/
+          background-image: url('');
           content: "F";
 /*            border: 1px solid #20AECE;
             border-radius: 4px;*/
         }
         
         #dbcTable td.halfblock {
-          background: #1D5E8C;
+/*          background: #1D5E8C;*/
+          background-image: url('');
           content: "H";
           /*border: none;*/
         }
@@ -35,6 +37,11 @@
             font: 43px Quicksand;
             font-weight: 300;
         }
+        
+        .selected {
+            box-shadow: 0px 0px 5px 2px #0C7DBE;
+        }
+        
     </style>
     <script>
     jQuery(document).ready(function() {
@@ -67,12 +74,13 @@
             var klass = $block.attr('class');
             
             // logic to cycle through each cell state: fullblock, halfblock, or empty
-            if ( klass == 'fullblock' ) 
-                $block.removeClass('fullblock').addClass('halfblock');
-            else if ( klass == 'halfblock' )
-                $block.removeClass('halfblock');
-            else
-                $block.addClass('fullblock');
+            // if ( klass == 'fullblock' ) 
+            //                $block.removeClass('fullblock').addClass('halfblock');
+            //            else if ( klass == 'halfblock' )
+            //                $block.removeClass('halfblock');
+            //            else
+            //                $block.addClass('fullblock');
+            $block.css('background-image', jQuery(".selected").css("background-image"));
             
             // if(event.type == 'mousedown')    
             //                 calcConnections();
@@ -170,6 +178,11 @@
         jQuery("#half-half-num").html( connections['half-half'] );
         
     }
+    
+    function selectIt(elem) {
+        jQuery(".wood").removeClass("selected");
+        jQuery(elem).addClass("selected");
+    }
      
     </script>
 </head>
@@ -180,12 +193,18 @@
         <table id="dbcTable">      
         </table>    
     </div>
-    <div id="cost-calculator" style="float:left; margin-left: 25px; margin-top:200px">
-        <div>#Full Blocks : <span id="fullblock-num">0</span></div>
+    <div id="cost-calculator" style="float:left; margin-left: 25px; margin-top:200px;">
+        <div>
+            <div style="float:left">Dark Walnut</div> <div class="wood" onclick="selectIt(this)" style="width:40px;height:40px;background-image:url('images/dark-walnut.jpg');float:left;margin-top:10px;margin-left:10px"/>
+        </div>
+        <div>
+            <div style="float:left">Cherry</div> <div class="wood" onclick="selectIt(this)" style="width:40px;height:40px;background-image:url('images/cherry.jpg');float:left;margin-top:10px;margin-left:10px"/>
+        </div>
+        <!-- <div>#Full Blocks : <span id="fullblock-num">0</span></div>
         <div>#Half Blocks : <span id="halfblock-num">0</span></div>
         <div>#Full-Full Connections : <span id="full-full-num">0</span></div>
         <div>#Full-Half Connections : <span id="full-half-num">0</span></div>
-        <div>#Half-Half Connections : <span id="half-half-num">0</span></div>
+        <div>#Half-Half Connections : <span id="half-half-num">0</span></div> -->
     </div>
 </body>
 </html>
